@@ -28,6 +28,7 @@ jobs:
       - name: Detect package manager
         id: pm
         shell: bash
+        working-directory: ${{ inputs.working-directory }}
         run: |
           if [ -f "pnpm-lock.yaml" ]; then echo "manager=pnpm" >> "$GITHUB_OUTPUT"
           elif [ -f "yarn.lock" ]; then echo "manager=yarn" >> "$GITHUB_OUTPUT"
@@ -36,8 +37,6 @@ jobs:
       - name: Setup pnpm
         if: steps.pm.outputs.manager == 'pnpm'
         uses: pnpm/action-setup@v6
-        with:
-          version: 10
 
       - uses: actions/setup-node@v6
         with:
@@ -73,5 +72,5 @@ jobs:
         shell: bash
         run: |
           if grep -q '"test"' package.json; then
-            ${{ steps.pm.outputs.manager }} test
+            ${{ steps.pm.outputs.manager }} run test
           fi
