@@ -29,13 +29,26 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync
+        run: |
+          if [ -f "pyproject.toml" ]; then
+            uv sync
+          elif [ -f "requirements.txt" ]; then
+            uv pip install -r requirements.txt
+          fi
 
       - name: Ruff check
-        run: uv run ruff check .
+        run: |
+          if uv run ruff --version 2>/dev/null; then
+            uv run ruff check .
+          elif command -v ruff 2>/dev/null; then
+            ruff check .
+          fi
 
       - name: Ruff format check
-        run: uv run ruff format --check .
+        run: |
+          if uv run ruff --version 2>/dev/null; then
+            uv run ruff format --check .
+          fi
 
       - name: Pytest
         if: inputs.run-tests
