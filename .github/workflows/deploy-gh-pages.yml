@@ -1,0 +1,73 @@
+name: Deploy to GitHub Pages
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: "22.x"
+      build-command:
+        type: string
+        default: "build"
+      output-dir:
+        type: string
+        default: "dist"
+      working-directory:
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Detect package manager
+        id: pm
+        shell: bash
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+          elif [ -f "yarn.lock" ]; then echo "manager=yarn" >> "$GITHUB_OUTPUT"
+          else echo "manager=npm" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Setup pnpm
+        if: steps.pm.outputs.manager == 'pnpm'
+        uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ steps.pm.outputs.manager }}
+
+      - name: Install
+        shell: bash
+        run: |
+          case "${{ steps.pm.outputs.manager }}" in
+            pnpm) pnpm install --frozen-lockfile ;;
+            yarn) yarn install --frozen-lockfile ;;
+            npm)  npm ci ;;
+          esac
+
+      - name: Build
+        run: ${{ steps.pm.outputs.manager }} run ${{ inputs.build-command }}
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ inputs.working-directory }}/${{ inputs.output-dir }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
