@@ -30,13 +30,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f "pyproject.toml" ]; then
-            uv sync --all-extras || uv sync
-          elif [ -f "requirements.txt" ]; then
+          if [ -f "requirements.txt" ]; then
             uv venv
             uv pip install -r requirements.txt
+          elif [ -f "pyproject.toml" ]; then
+            uv sync --all-extras 2>/dev/null || uv sync 2>/dev/null || (uv venv && uv pip install .)
           else
-            echo "No pyproject.toml or requirements.txt found, skipping install"
+            echo "No dependency file found, skipping install"
           fi
 
       - name: Ruff check
