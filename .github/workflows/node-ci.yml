@@ -57,6 +57,7 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: ${{ steps.pm.outputs.manager }}
+          cache-dependency-path: ${{ inputs.working-directory }}
 
       - name: Install
         shell: bash
