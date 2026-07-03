@@ -26,17 +26,17 @@ on:
 
 jobs:
   build:
-    uses: Sagargupta16/shared-workflows/.github/workflows/node-ci.yml@main
+    uses: Sagargupta16/shared-workflows/.github/workflows/node-ci.yml@v1
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: build
-    uses: Sagargupta16/shared-workflows/.github/workflows/deploy-gh-pages.yml@main
+    uses: Sagargupta16/shared-workflows/.github/workflows/deploy-gh-pages.yml@v1
     with:
       output-dir: dist
 
   security:
-    uses: Sagargupta16/shared-workflows/.github/workflows/security-scan.yml@main
+    uses: Sagargupta16/shared-workflows/.github/workflows/security-scan.yml@v1
     permissions:
       contents: read
       security-events: write
