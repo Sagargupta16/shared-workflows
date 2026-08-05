@@ -11,9 +11,28 @@ on:
       run-lint:
         type: boolean
         default: true
+      run-typecheck:
+        # Off by default so the five existing callers are unaffected. A repo with a
+        # `typecheck` script opts in; without this, a type error could only ever be
+        # caught by whatever the build happens to compile.
+        type: boolean
+        default: false
+      tests-before-build:
+        # A pure unit suite should run BEFORE the build: it is the faster signal, and
+        # failing on a logic regression after waiting for a bundler is time spent to
+        # learn nothing. Default keeps the original order for existing callers.
+        type: boolean
+        default: false
       working-directory:
         type: string
         default: "."
+    secrets:
+      # Passed to the BUILD step only, as an env block, for frameworks that read
+      # configuration at build time. Optional: a caller that needs none omits it, and
+      # the step then runs with nothing extra in its environment.
+      build-env:
+        description: "Newline-separated KEY=VALUE pairs for the build step."
+        required: false
 
 jobs:
   ci:
@@ -76,15 +95,42 @@ jobs:
             ${{ steps.pm.outputs.manager }} run lint
           fi
 
-      - name: Build
+      - name: Typecheck
+        if: inputs.run-typecheck
         shell: bash
         run: |
+          if grep -q '"typecheck"' package.json; then
+            ${{ steps.pm.outputs.manager }} run typecheck
+          else
+            echo "No typecheck script; skipping."
+          fi
+
+      - name: Test (before build)
+        if: inputs.run-tests && inputs.tests-before-build
+        shell: bash
+        run: |
+          if grep -q '"test"' package.json; then
+            ${{ steps.pm.outputs.manager }} run test
+          fi
+
+      - name: Build
+        shell: bash
+        # `build-env` arrives as newline-separated KEY=VALUE and is written to
+        # GITHUB_ENV rather than interpolated into the run block, so a value never
+        # appears in the command line the log echoes.
+        run: |
+          if [ -n "${{ secrets.build-env }}" ]; then
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              echo "$line" >> "$GITHUB_ENV"
+            done <<< "${{ secrets.build-env }}"
+          fi
           if grep -q '"build"' package.json; then
             ${{ steps.pm.outputs.manager }} run build
           fi
 
       - name: Test
-        if: inputs.run-tests
+        if: inputs.run-tests && !inputs.tests-before-build
         shell: bash
         run: |
           if grep -q '"test"' package.json; then
