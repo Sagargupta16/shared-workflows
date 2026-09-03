@@ -1,22 +1,23 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"description": "Shared Renovate preset for all Sagargupta16 repos. One grouped PR per repo, monthly on the 25th, auto-merged when CI is green. Extend via: extends: ['github>Sagargupta16/shared-workflows']",
+	"description": "Shared Renovate preset for all Sagargupta16 repos. One grouped PR per repo in the first week of each month, auto-merged when CI is green. Security fixes bypass the schedule and auto-merge immediately. Extend via: extends: ['github>Sagargupta16/shared-workflows']",
 	"extends": ["config:recommended", ":dependencyDashboard"],
 	"timezone": "Asia/Kolkata",
-	"schedule": ["before 5am on the 25th day of the month"],
+	"schedule": ["on the 1st through 7th day of the month"],
 	"prCreation": "immediate",
 	"prConcurrentLimit": 0,
 	"prHourlyLimit": 0,
 	"rangeStrategy": "replace",
 	"lockFileMaintenance": {
 		"enabled": true,
-		"schedule": ["before 5am on the 25th day of the month"]
+		"schedule": ["on the 1st through 7th day of the month"]
 	},
 	"packageRules": [
 		{
+			"matchPackageNames": ["*"],
 			"groupName": "monthly dependencies",
 			"groupSlug": "monthly",
-			"schedule": ["before 5am on the 25th day of the month"],
+			"schedule": ["on the 1st through 7th day of the month"],
 			"automerge": true,
 			"automergeType": "pr",
 			"automergeStrategy": "squash",
@@ -25,9 +26,8 @@
 	],
 	"vulnerabilityAlerts": {
 		"enabled": true,
-		"groupName": "monthly dependencies",
-		"groupSlug": "monthly",
-		"schedule": ["before 5am on the 25th day of the month"],
+		"schedule": ["at any time"],
+		"automerge": true,
 		"labels": ["dependencies", "security"]
 	}
 }
