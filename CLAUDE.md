@@ -37,7 +37,7 @@ No test suite. Verify by triggering a consumer repo's CI (or `gh workflow run` o
 - `.github/workflows/security-scan.yml` -- Dependency Review + Trivy filesystem
 - `.github/workflows/terraform-ci.yml` -- fmt + validate + Checkov SARIF
 - `.github/workflows/release.yml` -- tag-triggered build + GitHub Release
-- `renovate.json` -- shared preset: monthly grouped PR (25th, IST), auto-merge on green CI. Consumers use `extends: ['github>Sagargupta16/shared-workflows']`
+- `default.json` -- shared Renovate preset: one grouped minor/patch PR and one grouped major PR on the 1st of the month (IST), auto-merged on green CI; security fixes ignore the schedule. Renovate resolves `default.json` for `github>owner/repo` presets and only falls back to `renovate.json` with a deprecation warning. Consumers use `extends: ['github>Sagargupta16/shared-workflows']`
 
 ## Gotchas
 
