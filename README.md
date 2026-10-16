@@ -46,5 +46,6 @@ jobs:
 
 - **Auto-detect** package manager from lockfile (no manual config)
 - **Skip gracefully** if a script doesn't exist (no `lint` script? skip lint step)
-- **Minimal inputs** with sensible defaults — most repos need zero config
-- **Security by default** — Trivy + Dependency Review on every workflow
+- **Fail on real errors**: once a tool runs, its exit code gates the job. `python-ci.yml` skips ruff or pytest only when they are not installed, installs with `uv sync --locked` when `uv.lock` exists, and treats an empty test suite (pytest exit 5) as a pass
+- **Minimal inputs** with sensible defaults: most repos need zero config
+- **Security by default**: Trivy + Dependency Review on every workflow
