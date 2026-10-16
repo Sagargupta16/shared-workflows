@@ -30,30 +30,46 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f "requirements.txt" ]; then
+          if [ -f "uv.lock" ]; then
+            uv sync --locked --all-extras
+          elif [ -f "requirements.txt" ]; then
             uv venv
             uv pip install -r requirements.txt
           elif [ -f "pyproject.toml" ]; then
-            uv sync --all-extras 2>/dev/null || uv sync 2>/dev/null || (uv venv && uv pip install .)
+            uv sync --all-extras
           else
             echo "No dependency file found, skipping install"
           fi
 
+      # Each gate skips only when its tool is not installed; once it runs, its exit code fails the job.
       - name: Ruff check
         run: |
-          if uv run ruff --version 2>/dev/null; then
-            uv run ruff check . || true
+          if uv run --no-sync ruff --version >/dev/null 2>&1; then
+            uv run --no-sync ruff check .
+          else
+            echo "::notice::ruff is not installed, skipping lint"
           fi
 
       - name: Ruff format check
         run: |
-          if uv run ruff --version 2>/dev/null; then
-            uv run ruff format --check . || true
+          if uv run --no-sync ruff --version >/dev/null 2>&1; then
+            uv run --no-sync ruff format --check .
+          else
+            echo "::notice::ruff is not installed, skipping format check"
           fi
 
       - name: Pytest
         if: inputs.run-tests
         run: |
-          if uv run python -c "import pytest" 2>/dev/null; then
-            uv run pytest -q || true
+          if ! uv run --no-sync python -c "import pytest" >/dev/null 2>&1; then
+            echo "::notice::pytest is not installed, skipping tests"
+            exit 0
           fi
+          rc=0
+          uv run --no-sync pytest -q || rc=$?
+          # pytest exits 5 when it collects no tests; an empty suite is not a failure
+          if [ "$rc" -eq 5 ]; then
+            echo "::notice::pytest collected no tests"
+            exit 0
+          fi
+          exit "$rc"
