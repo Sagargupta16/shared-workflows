@@ -48,5 +48,5 @@ jobs:
 - **Skip gracefully** if a script doesn't exist (no `lint` script? skip lint step)
 - **Fail on real errors**: once a tool runs, its exit code gates the job. `python-ci.yml` skips ruff or pytest only when they are not installed, installs with `uv sync --locked` when `uv.lock` exists, and treats an empty test suite (pytest exit 5) as a pass
 - **Minimal inputs** with sensible defaults: most repos need zero config
-- **Respect the repo's pins**: `python-ci.yml` sets no Python version unless the caller passes `python-version`, so uv runs the one in the repo's `.python-version` or `requires-python`
+- **Respect the repo's pins**: without a `python-version` input, `python-ci.yml` runs the nearest `.python-version` from `working-directory` up to the repo root, else lets uv pick from `requires-python`
 - **Security by default**: Trivy + Dependency Review on every workflow
