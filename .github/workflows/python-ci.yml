@@ -2,9 +2,10 @@ name: Python CI
 on:
   workflow_call:
     inputs:
+      # Empty uses the nearest .python-version from working-directory up to the repo root, else uv falls back to requires-python.
       python-version:
         type: string
-        default: "3.13"
+        default: ""
       working-directory:
         type: string
         default: "."
@@ -22,10 +23,29 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # uv stops looking for .python-version at a pyproject.toml, so a root pin is invisible to a subdirectory project.
+      - name: Resolve Python version
+        id: python
+        env:
+          INPUT_PYTHON_VERSION: ${{ inputs.python-version }}
+        run: |
+          version="$INPUT_PYTHON_VERSION"
+          dir="$PWD"
+          while [ -z "$version" ]; do
+            if [ -f "$dir/.python-version" ]; then
+              version=$(grep -m1 -v -E '^[[:space:]]*(#|$)' "$dir/.python-version" | tr -d '[:space:]') || true
+            fi
+            if [ "$dir" = "$GITHUB_WORKSPACE" ] || [ "$dir" = / ]; then
+              break
+            fi
+            dir=$(dirname "$dir")
+          done
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v10.3.3
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ steps.python.outputs.version }}
           enable-cache: true
 
       - name: Install dependencies
