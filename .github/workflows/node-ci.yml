@@ -42,7 +42,7 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Detect package manager
         id: pm
@@ -72,7 +72,7 @@ jobs:
         with:
           version: ${{ steps.pnpm-ver.outputs.version }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-version }}
           cache: ${{ steps.pm.outputs.manager }}
