@@ -21,7 +21,7 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # uv stops looking for .python-version at a pyproject.toml, so a root pin is invisible to a subdirectory project.
       - name: Resolve Python version
@@ -43,7 +43,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: ${{ steps.python.outputs.version }}
           enable-cache: true
