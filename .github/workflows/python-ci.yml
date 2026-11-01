@@ -2,9 +2,10 @@ name: Python CI
 on:
   workflow_call:
     inputs:
+      # Empty leaves UV_PYTHON unset, so uv picks the version from the caller's .python-version or requires-python.
       python-version:
         type: string
-        default: "3.13"
+        default: ""
       working-directory:
         type: string
         default: "."
